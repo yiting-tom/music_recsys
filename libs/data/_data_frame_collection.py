@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Generator, List, Literal, Optional
+from typing import Any, Callable, Generator, List, Literal, Optional
 
 import pandas as pd
 from libs.data.config import DatasetConfig as DC
@@ -21,11 +21,14 @@ class DataFrameCollection:
     ):
         self.name: str = name
         self.state: str = state
-        self.dir: Path = DC.ROOT_DIR / name / state
         self.dfs: List[str] = dfs or []
 
         self.set_all_dfs(ftype="pkl")
-
+    
+    @property
+    def dir(self) -> Path:
+        return DC.ROOT_DIR / self.name / self.state
+    
     def set_all_dfs(self, ftype: Literal["plk", "csv"] = "pkl") -> None:
         """set_all_dfs method
         
@@ -38,20 +41,16 @@ class DataFrameCollection:
             ValueError: If the file type is not "pkl" or "csv" or no data frames fount.
         """
         # Update the folder path with file type.
-        self.dir = self.dir / ftype
-        print(f"reading DataFrames from {self.dir}")
+        folder: Path = self.dir / ftype
+        print(f"reading DataFrames from {folder}")
 
         # Get all the files in the directory.
-        all_dfs: Generator[Path] = self.dir.glob("*." + ftype)
-
-        # Check if the data frames are exist.
-        if all_dfs is None and self.dfs is None:
-            raise ValueError(f"No data frames found in {self.dir}.")
+        all_dfs: Generator[Path] = folder.glob("*." + ftype)
 
         # If the list of dfs is not given, we use all the files.
-        for df_name in self.dfs or all_dfs:
+        for df_name in all_dfs:
             # Get the file path.
-            df_path: Path = self.dir / df_name
+            df_path: Path = folder / df_name
             # Set suffix for the path.
             location: Path = df_path.with_suffix(f".{ftype}")
             # Read the data frame from the path.
@@ -74,26 +73,30 @@ class DataFrameCollection:
         setattr(self, name, df)
         self.dfs.append(name)
     
-    def save_dfs(self, ftype: Literal["plk", "csv"] = "pkl") -> None:
+    def save_dfs(
+        self,
+        columns: List[str] = None,
+    ) -> None:
         """save_dfs method
         
-        Save all data frames in the collection.
+        Save all data frames in the collection by pickle.
         
         Args:
-            ftype (str, optional): The file type of data frames. Defaults to "pkl".
+            columns (List[str], optional): DataFrames to be saved. Defaults to None (all columns).
         """
         # Update the folder path with file type.
-        self.dir = self.dir / ftype
-        print(f"saving DataFrames to {self.dir}")
+        folder: Path = self.dir / "pkl"
+        print(f"saving DataFrames {columns or self.dfs} to {folder}")
+
         # Save all data frames.
-        for df_name in self.dfs:
+        for df_name in (columns or self.dfs):
             # Get the file path.
-            df_path: Path = self.dir / df_name
+            df_path: Path = folder / df_name
             # Set suffix for the path.
-            location: Path = df_path.with_suffix(f".{ftype}")
-            # Save the data frame to the path.
+            location: Path = df_path.with_suffix(".pkl")
+            # Pickle the data frame to the path.
             getattr(self, df_name).to_pickle(location)
     
     def __repr__(self) -> str:
-        return f"<DataFrameCollection {self.name}>"
+        return f"<DataFrameCollection {self.dir}>"
         

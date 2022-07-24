@@ -7,7 +7,10 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+from pathlib import Path
+
 BOT_NAME = 'lyrics_scrapy'
+DATA_DIR = Path(__file__).parent / 'data'
 
 SPIDER_MODULES = ['lyrics_scrapy.spiders']
 NEWSPIDER_MODULE = 'lyrics_scrapy.spiders'

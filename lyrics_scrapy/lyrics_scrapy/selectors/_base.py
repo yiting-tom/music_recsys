@@ -2,7 +2,7 @@
 from tqdm import tqdm
 import pandas as pd
 from pathlib import Path
-from typing import Callable, Dict, Iterable, Optional, Union
+from typing import Callable, Dict, Iterable, Union
 from scrapy.selector import Selector
 
 class BaseSelector:
@@ -48,19 +48,3 @@ class BaseSelector:
             df.columns = self.rules.keys()
 
             yield df
-#%%
-s = BaseSelector(
-    raw_dir="../data/htm/timeline/",
-    rules={
-        "artist": lambda sel: sel.xpath("//dd/h1//a[1]/@href").getall(),
-        "album": lambda sel: sel.xpath("//dd/h1//a[2]/@href").getall(),
-        "track": lambda sel: sel.xpath("//dd/div//a/@href").getall(),
-    }
-)
-
-ans = s.select()
-full = pd.concat(ans)
-
-for column in full.columns:
-    pd.Series(full[column], name=column) \
-        .to_csv(f"../data/csv/{column}.csv", index=False)

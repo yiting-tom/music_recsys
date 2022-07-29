@@ -30,10 +30,10 @@ class TrackSpider(scrapy.Spider):
     name = 'track'
     allowed_domains = ['mojim.com']
     save_path = DATA_DIR / "htm/track/"
-    start_urls = get_all_tracks(
+    start_urls = list(get_all_tracks(
         track_id_path = DATA_DIR / "csv/track-id.csv",
         processed_path = save_path,
-    )
+    ))[:150000]
     re_filename = re.compile(r'(?<=.com\/)[\w.]+')
     save_path.mkdir(exist_ok=True, parents=True)
 
